@@ -76,18 +76,15 @@ static std::string replaceAll(std::string_view str, std::string_view from, std::
 
 static std::string piperTextPreprocess(std::string text)
 {
-    // trim leading and tailing spaces
+    // trim leading and tailing spaces; a request with nothing but whitespace has nothing to
+    // synthesize, and text.back() below would read past an empty string
     auto first = text.find_first_not_of(" \n\r\t");
-    if(first != std::string::npos)
-        text = text.substr(first);
-    auto last = text.find_last_not_of(" \n\r\t");
-    if(last != std::string::npos)
-        text = text.substr(0, last + 1);
-
-    if(text.empty()) {
+    if(first == std::string::npos) {
         text = ",";
         return text;
     }
+    text = text.substr(first);
+    text = text.substr(0, text.find_last_not_of(" \n\r\t") + 1);
 
     // append a comma if the text does not end with a punctuation
     const char* punctuation = ".,!?;:";

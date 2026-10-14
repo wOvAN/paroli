@@ -69,8 +69,9 @@ function reconnectWS(connect_fn) {
               if(msg["status"] == "ok") {
                   // The first text message of a pcm stream carries the voice's sample rate; the
                   // player has to be built on it, so it is created here and not in runTTS.
-                  if(typeof msg["sample_rate"] != 'undefined') {
-                      if(player) player.destroy();
+                  if(typeof msg["sample_rate"] != 'undefined' && !player) {
+                      // one voice per server process, so the announced rate never changes and the
+                      // player is built once, on the first stream
                       pcmplayer_opt.sampleRate = msg["sample_rate"];
                       player = new PCMPlayer(pcmplayer_opt);
                   }
