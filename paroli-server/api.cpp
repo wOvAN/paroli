@@ -386,6 +386,15 @@ Task<> v1ws::handleNewMessageAsync(WebSocketConnectionPtr wsConnPtr, std::string
     }
     bool send_opus = params.audio_format.value_or("opus") == "opus";
 
+    // PCM goes out at the model's native sample rate, which the client cannot know. Announce it
+    // before the first audio chunk so a player can be built on it.
+    if(!send_opus) {
+        nlohmann::json header;
+        header["status"] = "ok";
+        header["sample_rate"] = voice.synthesisConfig.sampleRate;
+        wsConnPtr->send(header.dump());
+    }
+
     StreamingOggOpusEncoder encoder(24000, 1);
     bool ok = speak(params.text, params.speaker_id, [&](const std::span<const short> view) {
         if(view.empty())
